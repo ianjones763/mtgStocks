@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MTG</title>
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Nav bar at top -->
+  <div class="topnav">
+    <div class="padding"> </div>
+    <a class="active" href="#home">Home</a>
+    <a href="#about">Cards</a>
+    <a href="#contact">Stocks</a>
+    <input id= "search" type="search" placeholder="Search cards...">
+    <div class="padding"> </div>
+  </div>
+
+  <!-- Body div, includes card name and prices -->
+  <div class="bodyheader"> 
+    <div class="padding"> </div>
+    <div id="cardnameContainer"> 
+      <p id="cardname">CARD NAME</p>
+    </div>
+
+    <div id="pricediv">
+      <!-- Average price -->
+      <div> 
+        <p class="priceheader"> AVERAGE </p>
+        <p class="price" id="avgprice"> $5.01 </p>
+      </div>
+
+      <!-- Market price -->
+      <div> 
+        <p class="priceheader"> MARKET </p>
+        <p class="price" id="marketprice"> $4.79 </p>
+      </div>
+    </div>
+    <div class="padding"> </div>
+  </div>
+
+  <!-- Line to divide body div from vis area -->
+  <div style="width:60%; margin-left:20%; height:1px; background-color: black; opacity: 0.5"> </div>
+
+  <!-- Visualization area -->
+  <div id="vis"> </div>
+
+</div>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="vis.js"></script>
+</body>
+</html>
