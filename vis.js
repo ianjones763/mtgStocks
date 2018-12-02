@@ -56,27 +56,18 @@ function display() {
     updateHeader(Object.keys(cardData)[rand], cardData[Object.keys(cardData)[rand]]);
 
     /* Draw legend */
-    var legendMargin = {
-    	left: 10,
-    	right: 20,
-    	top: 20,
-    	bottom: 20
-    };
-    var graphHeight = 4/5 * visHeight;
-    var legendWidth = (2/10) * visWidth;
-    var legendHeight = (1/2) * graphHeight;
-    drawLegend(cardData[Object.keys(cardData)[rand]], svg, legendWidth, legendHeight, legendMargin);			// Display legend of random card
-
+    updateLegend(cardData[Object.keys(cardData)[rand]]);
 
     /* Draw graph */
+    var graphHeight = 7/8 * visHeight;
     var graphMargin = {
-    	left: 40,
+    	left: 30,
     	right: 40,
     	top: 20,
     	bottom: 20
     };
-    var graphWidth = visWidth - legendWidth - graphMargin.left - graphMargin.right - legendMargin.left - legendMargin.right;
-    var graphX = legendWidth + graphMargin.left;
+    var graphWidth = visWidth - graphMargin.left - graphMargin.right;
+    var graphX = graphMargin.left;
     drawGraph(cardData[Object.keys(cardData)[rand]], svg, graphX, graphWidth, graphHeight, graphMargin);		// Display graph of random card
 
 
@@ -132,6 +123,21 @@ function updateHeader(card, data) {
 	document.getElementById("marketprice").innerHTML = "$" + avg;
 }
 
+/*
+ * Updates the vis header to show the card name and current price info
+ */
+function updateLegend(data) {
+	// Calculate prices over time
+	var prices = calculatePricesOverTime(data);
+	var maxPrice = prices[0],
+		minPrice = prices[1],
+		avgPrice = prices[2];
+
+	document.getElementById("maxprice").innerHTML = "$" + maxPrice;
+	document.getElementById("minprice").innerHTML = "$" + minPrice;
+	document.getElementById("avgprice").innerHTML = "$" + avgPrice;
+}
+
 
 /*
  * Returns the max, min, and avg price over time for the given card data
@@ -149,126 +155,6 @@ function calculatePricesOverTime(data) {
 	}
 	avg /= data.length;
 	return [max.toFixed(2), min.toFixed(2), avg.toFixed(2)];
-}
-
-
-
-/*
- * Renders the legend to display price data over time
- */
-function drawLegend(data, svg, width, height, margin) {
-
-	// Calculate prices over time
-	var prices = calculatePricesOverTime(data);
-	var maxPrice = prices[0],
-		minPrice = prices[1],
-		avgPrice = prices[2];
-
-	var g = svg.append("g")
-		.attr("class", "graph");
-	// filters go in defs element
-	var defs = g.append("defs")
-		.attr("class", "graph");
-
-	// // create filter with id #drop-shadow
-	// // height=130% so that the shadow is not clipped
-	// var filter = defs.append("filter")
-	//     .attr("id", "drop-shadow")
-	//     .attr("height", "130%");
-
-	// // SourceAlpha refers to opacity of graphic that this filter will be applied to
-	// // convolve that with a Gaussian with standard deviation 3 and store result
-	// // in blur
-	// filter.append("feGaussianBlur")
-	//     .attr("in", "SourceAlpha")
-	//     .attr("stdDeviation", 6)
-	//     .attr("result", "blur");
-
-	// // translate output of Gaussian blur to the right and downwards with 2px
-	// // store result in offsetBlur
-	// filter.append("feOffset")
-	//     .attr("in", "blur")
-	//     .attr("dx", 3)
-	//     .attr("dy", 3)
-	//     .attr("result", "offsetBlur");
-
-	// // overlay original SourceGraphic over translated blurred opacity by using
-	// // feMerge filter. Order of specifying inputs is important!
-	// var feMerge = filter.append("feMerge");
-
-	// feMerge.append("feMergeNode")
-	//     .attr("in", "offsetBlur");
-	// feMerge.append("feMergeNode")
-	//     .attr("in", "SourceGraphic");
-
-	// // for each rendered node, apply #drop-shadow filter
-	// var item = g.append("rect")
-	// 	.attr("x", margin.left)
-	// 	.attr("y", margin.top)
-	//     .attr("width", width)
-	//     .attr("height", height)
-	//     .attr("fill", "#f2f2f2")
-	//     .attr("stroke-width", 2)
-	    // .style("filter", "url(#drop-shadow)")
-	var item = g.append("rect")
-		.attr("x", margin.left)
-		.attr("y", margin.top)
-		.attr("rx", 5)
-		.attr("ry", 5)
-	    .attr("width", width)
-	    .attr("height", height)
-	    .attr("fill", "#f2f2f2")
-	    .attr("stroke-width", 2)
-
-
-	var v_spacing = 60;
-	var h_spacing = 10;
-	// Legend title
-	g.append("text")
-		.attr("x", width / 2 + 10)
-		.attr("y", margin.top + 40)
-		.attr("font-size", 24)
-		.attr("text-anchor", "middle")
-		.text("Record Over Time")
-
-	// First row
-	var max = g.append("text")
-		.attr("x", margin.left + h_spacing)
-		.attr("y", height * (1/4) + v_spacing)
-		.attr("font-size", 18)
-		.text("Max Price")
-	g.append("text")
-		.attr("x", margin.left + (2 * h_spacing) + max.node().getComputedTextLength())
-		.attr("y", height * (1/4) + v_spacing)
-		.attr("font-size", 24)
-		.attr("font-weight", "bold")
-		.text("$" + maxPrice)
-
-	// Second row
-	var min = g.append("text")
-		.attr("x", margin.left + h_spacing)
-		.attr("y", height * (1/2) + v_spacing)
-		.attr("font-size", 18)
-		.text("Min Price")
-	g.append("text")
-		.attr("x", margin.left + (2 * h_spacing) + min.node().getComputedTextLength())
-		.attr("y", height * (1/2) + v_spacing)
-		.attr("font-size", 24)
-		.attr("font-weight", "bold")
-		.text("$" + minPrice)
-
-	// Third row
-	var avg = g.append("text")
-		.attr("x", margin.left + h_spacing)
-		.attr("y", height * (3/4) + v_spacing)
-		.attr("font-size", 18)
-		.text("Avg Price")
-	g.append("text")
-		.attr("x", margin.left + (2 * h_spacing) + min.node().getComputedTextLength())
-		.attr("y", height * (3/4) + v_spacing)
-		.attr("font-size", 24)
-		.attr("font-weight", "bold")
-		.text("$" + avgPrice)
 }
 
 
@@ -416,10 +302,10 @@ function updateVis(svg, legendWidth, legendHeight, graphX, graphWidth, graphHeig
 	if (search.value in cardData) {
 
 		d3.selectAll(".graph").remove();
-		drawLegend(cardData[search.value], svg, legendWidth, legendHeight, legendMargin);
+		// drawLegend(cardData[search.value], svg, legendWidth, legendHeight, legendMargin);
 		drawGraph(cardData[search.value], svg, graphX, graphWidth, graphHeight, graphMargin);
 		updateHeader(search.value, cardData[search.value]);
-
+		updateLegend(cardData[search.value]);
 	}
 }
 
