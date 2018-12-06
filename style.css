@@ -191,6 +191,7 @@ body {
     display: flex;
     flex-direction: column;
     width: 20%;
+    height: 100%;
     margin-top: 20px;
     margin-bottom: 20px;
     margin-left: 2.5%;
@@ -224,19 +225,20 @@ body {
     height: 600px; 
 }
 
-#cardlistContainer {
+#cardListContainer {
     width: 15%;
     margin-top: 20px; 
+    margin-bottom: 20px;
     margin-right: 2.5%;
     border-style: solid;
     border-width: 1px;
     border-color: #cccccc;
     border-radius: 5px;
+    overflow: scroll;
 }
 
 #cardList {
     background-color: lightblue;
-    overflow: scroll;
 }
 
 
