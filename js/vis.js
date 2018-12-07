@@ -9,8 +9,11 @@ var startDate = new Date("12/5/18");
 var currDate = new Date("12/5/23");
 var currIndex = 1826;	// Index to keep track of current date
 var endDate = new Date("12/1/28");
-// var maxDate = new Date("12/1/28");
 var cardData = {};
+var cash = 100.00;
+var ownedCards = [];	// store keys for cardData
+var assets = 0.00;
+
 
 /*
  * Convert data to a dictionary of {cardname: {date:value info}} 
@@ -30,6 +33,7 @@ function parseData(data) {
    	}
    	return output;
 }
+
 
 /*
  * Sets up initial display
@@ -97,22 +101,59 @@ function display(svg) {
 	}
 }
 
+
 /*
  * Buy the current card, add to user card list
  */
 function buyCard() {
-	var cardList = document.getElementById('cardList');
-    cardList.innerHTML = "<p>" + currCard + "</p>" + cardList.innerHTML;
+	var price = cardData[currCard][currIndex].value;
+	// buy card if you have enough money
+	if (cash >= price) {
+	    ownedCards.push(currCard);		// update owned cards
+	    cash -= price;					// update user cash
+	    assets += price;				// update user assets
+
+	    // update visuals
+	    document.getElementById("cashHeader").innerHTML = cash.toFixed(2);
+	    document.getElementById("assetsHeader").innerHTML = "$" + assets.toFixed(2);
+
+	    var cardList = document.getElementById('cardList');
+	    cardList.innerHTML = "<p>" + currCard + "</p>" + cardList.innerHTML;
+	} else {
+		showToast("You don't have enough cash to purchase " + currCard);
+	}
 }
+
 
 /*
  * Sell the current card, remove from user card list
  */
 function sellCard() {
-	console.log("sell card");
 	var cardList = document.getElementById('cardList');
-	var cards = cardList.getElementsByTagName('p')[0].innerHTML;
-	console.log("cards = " + cards)
+	// var cards = cardList.getElementsByTagName('p')[0].innerHTML;
+
+	// sell card if you own it
+	var index = ownedCards.indexOf(currCard);
+	if (index >= 0) {
+		var price = cardData[currCard][currIndex].value;
+	    ownedCards.splice(index, 1);	// update owned cards
+	    cash += price;					// update user cash
+	    assets -= price;				// update user assets
+	    if (assets <= 0) assets = 0;	// weird js addition stuff
+
+
+	    // update visuals
+	    document.getElementById("cashHeader").innerHTML = cash.toFixed(2);
+	    document.getElementById("assetsHeader").innerHTML = "$" + assets.toFixed(2);
+
+	    var cardString = ""
+	    ownedCards.forEach(function(d) {
+	    	cardString += "<p>" + d + "<p>";
+	    })
+	    cardList.innerHTML = cardString;
+	} else {
+		showToast("You don't own " + currCard);
+	}
 }
 
 
@@ -129,11 +170,13 @@ function backSimulate(svg, graphX, graphWidth, graphHeight, graphMargin) {
 		updateDateIndex(cardData[currCard]);
 		updateHeader(currCard, cardData[currCard]);
 		updateLegend(cardData[currCard]);
+		updateAssets();
 	} else {
 		currDate.addMonths(1);
 	}
 
 }
+
 
 /*
  * Simulates moving the market forward in time
@@ -148,9 +191,22 @@ function forwardSimulate(svg, graphX, graphWidth, graphHeight, graphMargin) {
 		updateDateIndex(cardData[currCard]);
 		updateHeader(currCard, cardData[currCard]);
 		updateLegend(cardData[currCard]);
+		updateAssets();
 	} else {
 		currDate.subtractMonths(1);
 	}
+}
+
+
+/*
+ * Updates the value of the assets according to owned cards (called on back/forward simulate)
+ */
+function updateAssets() {
+	assets = 0.00;
+	ownedCards.forEach(function(d) {
+		assets += cardData[d][currIndex].value;
+	})
+	document.getElementById("assetsHeader").innerHTML = "$" + assets.toFixed(2);
 }
 
 
@@ -159,11 +215,11 @@ function forwardSimulate(svg, graphX, graphWidth, graphHeight, graphMargin) {
  */
 function updateHeader(card, data) {
 	currCard = card;
-	var avg = data[currIndex].value;
-	console.log("avg from " + data[currIndex].date);
+	var currPrice = data[currIndex].value;
 	document.getElementById("cardname").innerHTML = card;
-	document.getElementById("marketprice").innerHTML = "$" + avg.toFixed(2);
+	document.getElementById("marketpriceHeader").innerHTML = "$" + currPrice.toFixed(2);
 }
+
 
 /*
  * Updates the vis header to show the card name and current price info
@@ -174,11 +230,12 @@ function updateLegend(data) {
 	var maxPrice = prices[0],
 		minPrice = prices[1],
 		avgPrice = prices[2];
+	var currPrice = data[currIndex].value;
 
 	document.getElementById("maxprice").innerHTML = "$" + maxPrice;
 	document.getElementById("minprice").innerHTML = "$" + minPrice;
 	document.getElementById("avgprice").innerHTML = "$" + avgPrice;
-	// document.getElementById("avgpriceHeader").innerHTML = "$" + avgPrice;
+	document.getElementById("marketprice").innerHTML = "$" + currPrice.toFixed(2);
 }
 
 
@@ -327,6 +384,30 @@ function updateVis(svg, graphX, graphWidth, graphHeight, graphMargin) {
 
 
 /*
+ * Updates the date index to keep track of where in the data we are
+ */
+function updateDateIndex(data) {
+	for (var i = 0; i < data.length; i++) {
+		if (data[i].date.getTime() == currDate.getTime()) {
+			currIndex = i;
+			return;
+		}
+	}
+}
+
+
+/*
+ * Shows a toast with the given message (called by invalid buy/sell)
+ */
+function showToast(message) {
+    var x = document.getElementById("toast");
+    x.className = "show";
+    x.innerHTML = message;
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+}
+
+
+/*
  * Date handling
  */
 Date.isLeapYear = function (year) { 
@@ -384,16 +465,6 @@ Date.prototype.toString = function () {
 }
 
 
-function updateDateIndex(data) {
-	for (var i = 0; i < data.length; i++) {
-		if (data[i].date.getTime() == currDate.getTime()) {
-			currIndex = i;
-			return;
-		}
-	}
-}
-
-
 
 
 //////////////////////////////////////////////
@@ -406,6 +477,7 @@ var visWidth  = d3.select("#vis").node().offsetWidth,
 var svg = d3.select('#vis').append('svg')
 	.attr('width', visWidth)
     .attr('height', visHeight)
+document.getElementById("cashHeader").innerHTML = "$" + cash.toFixed(2);
 
 var i = 0;
 d3.csv("data/cards_database.csv", function(d) {
@@ -421,8 +493,6 @@ d3.csv("data/cards_database.csv", function(d) {
 
     // Add card to database
     cardData[name] = prices;
-
-
 
 }).then(function (d) {
 	// hide animation
