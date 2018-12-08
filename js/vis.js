@@ -173,6 +173,7 @@ function backSimulate(svg, graphX, graphWidth, graphHeight, graphMargin) {
 		updateAssets();
 	} else {
 		currDate.addMonths(1);
+		showToast("You've reached the beginning of the simulation!");
 	}
 
 }
@@ -194,6 +195,7 @@ function forwardSimulate(svg, graphX, graphWidth, graphHeight, graphMargin) {
 		updateAssets();
 	} else {
 		currDate.subtractMonths(1);
+		showToast("You've reached the end of the simulation!");
 	}
 }
 
@@ -400,10 +402,10 @@ function updateDateIndex(data) {
  * Shows a toast with the given message (called by invalid buy/sell)
  */
 function showToast(message) {
-    var x = document.getElementById("toast");
-    x.className = "show";
-    x.innerHTML = message;
-    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+    var toast = document.getElementById("toast");
+    toast.className = "show";
+    toast.innerHTML = message;
+    setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 1000);
 }
 
 
